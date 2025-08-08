@@ -1,0 +1,128 @@
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #0d1b2a; /* Azul bem escuro */
+  color: #e0e0e0;
+  padding: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.container {
+  width: 100%;
+  max-width: 535px;
+  background-color: #1b263b; /* Azul escuro para o container */
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  margin: 0 15px;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #ffffff;
+}
+
+.input-group {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.input-group label {
+  font-weight: bold;
+  margin-bottom: 6px;
+  color: #ced4da;
+}
+
+.input-group input {
+  padding: 12px;
+  font-size: 16px;
+  background-color: #2e3b4e; /* Azul acinzentado */
+  border: 1px solid #495867;
+  border-radius: 8px;
+  color: #ffffff;
+}
+
+.input-group input::placeholder {
+  color: #676767;
+}
+
+.button-group {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  flex-wrap: wrap;
+  margin-top: 30px;
+}
+
+.side-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: center;
+}
+
+.center-button {
+  text-align: center;
+  margin-top: 30px;
+}
+
+button {
+  padding: 14px 20px;
+  font-size: 15px;
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  transition: background-color 0.3s, transform 0.2s;
+  min-width: 180px;
+  font-weight: bold;
+}
+
+/* Botões específicos com cores mais vivas */
+button.faster {
+  background-color: #1e90ff; /* Azul vibrante */
+  color: white;
+}
+
+button.faster:hover {
+  background-color: #0478ec;
+}
+
+button.desk {
+  background-color: #23c446; /* Verde vibrante */
+  color: white;
+}
+
+button.desk:hover {
+  background-color: #1b9335;
+}
+
+button.apagar {
+  background-color: #ff4c4c; /* Vermelho vibrante */
+  color: white;
+}
+
+button.apagar:hover {
+  background-color: #db2e2e;
+}
+
+button:hover {
+  transform: scale(1.03);
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+#mensagem-status {
+  text-align: center;
+  margin-top: 20px;
+}
+
+#mensagem-status div {
+  font-weight: bold;
+  margin-top: 6px;
+  font-size: 14px;
+}

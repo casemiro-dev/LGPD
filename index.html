@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Transferência de Dados</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Transferência de Dados</h1>
+
+    <div class="input-group">
+      <label for="telefone1">Telefone 01:</label>
+      <input type="tel" id="telefone1" placeholder="(XX) XXXX-XXXX" />
+    </div>
+
+    <div class="input-group">
+      <label for="telefone2">Telefone 02:</label>
+      <input type="tel" id="telefone2" placeholder="(XX) XXXX-XXXX" />
+    </div>
+
+    <div class="input-group">
+      <label for="telefone3">Telefone 03:</label>
+      <input type="tel" id="telefone3" placeholder="(XX) XXXX-XXXX" />
+    </div>
+
+    <div class="input-group">
+      <label for="telefone4">Telefone 04:</label>
+      <input type="tel" id="telefone4" placeholder="(XX) XXXX-XXXX" />
+    </div>
+
+    <div class="input-group">
+      <label for="email">Email:</label>
+      <input type="email" id="email" placeholder="seu.email@example.com" />
+    </div>
+
+    <div class="button-group">
+      <div class="side-buttons">
+        <button class="faster" onclick="transferirFaster()">Transferir - Faster</button>
+        <button class="faster" onclick="copiarFaster()">Copiar - Faster</button>
+      </div>
+      <div class="side-buttons">
+        <button class="desk" onclick="transferirDesk()">Transferir - Desk</button>
+        <button class="desk" onclick="copiarDesk()">Copiar - Desk</button>
+      </div>
+    </div>
+
+    <div class="center-button">
+      <button class="apagar" onclick="apagarCampos()">Apagar</button>
+    </div>
+
+    <!-- MENSAGEM AGORA DENTRO DA CONTAINER -->
+    <div id="mensagem-status"></div>
+  </div>
+
+  <script>
+    function transferirFaster() {
+      alert("Dados transferidos para Faster!");
+    }
+
+    function copiarFaster() {
+      alert("Dados copiados para Faster!");
+    }
+
+    function transferirDesk() {
+      alert("Dados transferidos para Desk!");
+    }
+
+    function copiarDesk() {
+      alert("Dados copiados para Desk!");
+    }
+
+    function apagarCampos() {
+      document.getElementById("telefone1").value = "";
+      document.getElementById("telefone2").value = "";
+      document.getElementById("telefone3").value = "";
+      document.getElementById("telefone4").value = "";
+      document.getElementById("email").value = "";
+    }
+  </script>
+  <script src="script.js"></script>
+</body>
+</html>
