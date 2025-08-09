@@ -72,7 +72,8 @@ function extrairTelefonesDesk(texto) {
     const linhaAtual = linhas[i].trim();
     const proximaLinha = linhas[i + 1] ? linhas[i + 1].replace(/\D/g, "") : "";
 
-    if (rótulosPermitidos.includes(linhaAtual) && proximaLinha.length === 11) {
+    // Aceita números com 10 ou 11 dígitos
+    if (rótulosPermitidos.includes(linhaAtual) && proximaLinha.length >= 10 && proximaLinha.length <= 11) {
       const ddd = proximaLinha.slice(0, 2);
       const numero = proximaLinha.slice(2);
       const jaExiste = telefones.some(t => t.ddd === ddd && t.numero === numero);
