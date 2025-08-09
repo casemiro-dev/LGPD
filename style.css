@@ -1,6 +1,7 @@
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #0d1b2a; /* Azul bem escuro */
+  background-color: #2C2E3E
+; /* Azul bem escuro */
   color: #e0e0e0;
   padding: 30px;
   display: flex;
@@ -11,7 +12,7 @@ body {
 .container {
   width: 100%;
   max-width: 535px;
-  background-color: #1b263b; /* Azul escuro para o container */
+  background-color: #172133; /* Azul escuro para o container */
   padding: 30px;
   border-radius: 12px;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
@@ -51,10 +52,32 @@ h1 {
 
 .button-group {
   display: flex;
-  justify-content: center;
-  gap: 40px;
+  justify-content: space-between;
+  gap: 20px;
   flex-wrap: wrap;
   margin-top: 30px;
+}
+
+/* Cada grupo lateral ocupa metade da largura */
+.side-buttons {
+  width: calc(50% - 10px); /* 50% menos metade do gap */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Botões dentro dos grupos */
+.side-buttons button {
+  width: 100%;
+}
+
+/* Botão apagar centralizado abaixo */
+.center-button {
+  margin-top: 20px;
+}
+
+.center-button button.apagar {
+  width: 100%;
 }
 
 .side-buttons {
