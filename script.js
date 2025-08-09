@@ -24,14 +24,65 @@ function identificarTipoConteudo(texto) {
   }
 }
 
-function extrairTelefones(texto) {
-  const regex = /(?:\D|^)(\d{2})(\d{4,5})(\d{4})(?:\D|$)/g;
+function extrairTelefonesFaster(texto) {
+  const inicio = texto.indexOf("Confirme o telefone com o cliente:");
+  const fim = texto.indexOf("Confirme o e-mail do responsável desta conta:");
+
+  if (inicio === -1 || fim === -1 || fim <= inicio) return [];
+
+  const trecho = texto.slice(inicio, fim);
+  const linhas = trecho.split(/\r?\n/);
   const telefones = [];
-  let match;
-  while ((match = regex.exec(texto)) !== null) {
-    telefones.push({ ddd: match[1], numero: match[2] + match[3] });
+
+  for (let i = 0; i < linhas.length; i++) {
+    const linha = linhas[i].trim();
+
+    if (linha === "DDD:" && linhas[i + 1] && linhas[i + 1].trim().length === 2) {
+      const ddd = linhas[i + 1].trim();
+      const telIndex = i + 2;
+
+      // Procurar por "Telefone:" e número logo depois
+      if (linhas[telIndex] && linhas[telIndex].trim() === "Telefone:" && linhas[telIndex + 1]) {
+        const numero = linhas[telIndex + 1].replace(/\D/g, "");
+        if (numero.length >= 8) {
+          const jaExiste = telefones.some(t => t.ddd === ddd && t.numero === numero);
+          if (!jaExiste) telefones.push({ ddd, numero });
+        }
+      }
+    }
+
+    if (telefones.length >= 4) break;
   }
-  return telefones.slice(0, 4);
+
+  return telefones;
+}
+
+function extrairTelefonesDesk(texto) {
+  const linhas = texto.split(/\r?\n/);
+  const telefones = [];
+  const rótulosPermitidos = [
+    "Fone Principal",
+    "Fone Alternativo",
+    "WhatsApp",
+    "Fone 6 (Último Contato)",
+    "Fone 7 (Mais Utilizado)"
+  ];
+
+  for (let i = 0; i < linhas.length; i++) {
+    const linhaAtual = linhas[i].trim();
+    const proximaLinha = linhas[i + 1] ? linhas[i + 1].replace(/\D/g, "") : "";
+
+    if (rótulosPermitidos.includes(linhaAtual) && proximaLinha.length === 11) {
+      const ddd = proximaLinha.slice(0, 2);
+      const numero = proximaLinha.slice(2);
+      const jaExiste = telefones.some(t => t.ddd === ddd && t.numero === numero);
+      if (!jaExiste) telefones.push({ ddd, numero });
+    }
+
+    if (telefones.length >= 4) break;
+  }
+
+  return telefones;
 }
 
 function extrairEmail(texto) {
@@ -70,7 +121,7 @@ async function transferirFaster() {
     return;
   }
 
-  const telefones = extrairTelefones(texto);
+  const telefones = extrairTelefonesFaster(texto);
   const email = extrairEmail(texto);
 
   telefones.forEach((tel, i) => {
@@ -88,7 +139,7 @@ async function transferirDesk() {
     return;
   }
 
-  const telefones = extrairTelefones(texto);
+  const telefones = extrairTelefonesDesk(texto);
   const email = extrairEmail(texto);
 
   telefones.forEach((tel, i) => {
