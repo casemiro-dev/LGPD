@@ -24,67 +24,50 @@ function identificarTipoConteudo(texto) {
   }
 }
 
-function extrairTelefonesFaster(texto) {
-  const inicio = texto.indexOf("Confirme o telefone com o cliente:");
-  const fim = texto.indexOf("Confirme o e-mail do responsável desta conta:");
+function extrairTelefones(texto) {
+  // Remove o trecho do celular do responsável até a próxima linha que começa com "*"
+  const textoFiltrado = texto.replace(/Confirme o celular do responsável desta conta:[\s\S]*?(?=\n\*)/, "");
 
-  if (inicio === -1 || fim === -1 || fim <= inicio) return [];
-
-  const trecho = texto.slice(inicio, fim);
-  const linhas = trecho.split(/\r?\n/);
+  const linhas = textoFiltrado.split(/\r?\n/).map(l => l.trim()).filter(l => l !== "");
   const telefones = [];
 
-  for (let i = 0; i < linhas.length; i++) {
-    const linha = linhas[i].trim();
-
-    if (linha === "DDD:" && linhas[i + 1] && linhas[i + 1].trim().length === 2) {
-      const ddd = linhas[i + 1].trim();
-      const telIndex = i + 2;
-
-      // Procurar por "Telefone:" e número logo depois
-      if (linhas[telIndex] && linhas[telIndex].trim() === "Telefone:" && linhas[telIndex + 1]) {
-        const numero = linhas[telIndex + 1].replace(/\D/g, "");
-        if (numero.length >= 8) {
-          const jaExiste = telefones.some(t => t.ddd === ddd && t.numero === numero);
-          if (!jaExiste) telefones.push({ ddd, numero });
+  for (let i = 0; i < linhas.length - 1; i++) {
+    if (linhas[i] === "DDD:" && /^\d{2}$/.test(linhas[i + 1])) {
+      const ddd = linhas[i + 1];
+      for (let j = i + 2; j < linhas.length - 1; j++) {
+        if (linhas[j] === "Telefone:" && /^\d{8,9}$/.test(linhas[j + 1])) {
+          const numero = linhas[j + 1];
+          telefones.push({ ddd, numero });
+          break;
+        }
+      }
+    } else {
+      const direto = linhas[i].match(/\b(\d{2})(\d{8,9})\b/);
+      if (direto) {
+        const ddd = direto[1];
+        const numero = direto[2];
+        if (!telefones.some(t => t.ddd === ddd && t.numero === numero)) {
+          telefones.push({ ddd, numero });
         }
       }
     }
-
-    if (telefones.length >= 4) break;
   }
 
-  return telefones;
-}
-
-function extrairTelefonesDesk(texto) {
-  const linhas = texto.split(/\r?\n/);
-  const telefones = [];
-  const rótulosPermitidos = [
-    "Fone Principal",
-    "Fone Alternativo",
-    "WhatsApp",
-    "Fone 6 (Último Contato)",
-    "Fone 7 (Mais Utilizado)"
-  ];
-
-  for (let i = 0; i < linhas.length; i++) {
-    const linhaAtual = linhas[i].trim();
-    const proximaLinha = linhas[i + 1] ? linhas[i + 1].replace(/\D/g, "") : "";
-
-    // Aceita números com 10 ou 11 dígitos
-    if (rótulosPermitidos.includes(linhaAtual) && proximaLinha.length >= 10 && proximaLinha.length <= 11) {
-      const ddd = proximaLinha.slice(0, 2);
-      const numero = proximaLinha.slice(2);
-      const jaExiste = telefones.some(t => t.ddd === ddd && t.numero === numero);
-      if (!jaExiste) telefones.push({ ddd, numero });
-    }
-
-    if (telefones.length >= 4) break;
+  // Captura números diretos apenas no texto filtrado
+  const diretos = textoFiltrado.match(/\b(\d{2})(\d{8,9})\b/g);
+  if (diretos) {
+    diretos.forEach(num => {
+      const ddd = num.slice(0, 2);
+      const numero = num.slice(2);
+      if (!telefones.some(t => t.ddd === ddd && t.numero === numero)) {
+        telefones.push({ ddd, numero });
+      }
+    });
   }
 
-  return telefones;
+  return telefones.slice(0, 4); // limita a 4 telefones
 }
+
 
 function extrairEmail(texto) {
   const regex = /[\w.-]+@[\w.-]+\.\w+/g;
@@ -116,13 +99,14 @@ function mostrarMensagem(texto, cor) {
 }
 
 async function transferirFaster() {
+  apagarCampos(); // limpa os campos antes de preencher
   const texto = await lerAreaTransferencia();
   if (identificarTipoConteudo(texto) !== "faster") {
     alert("Os dados não são do tipo Faster.");
     return;
   }
 
-  const telefones = extrairTelefonesFaster(texto);
+  const telefones = extrairTelefones(texto);
   const email = extrairEmail(texto);
 
   telefones.forEach((tel, i) => {
@@ -134,13 +118,14 @@ async function transferirFaster() {
 }
 
 async function transferirDesk() {
+  apagarCampos(); // limpa os campos antes de preencher
   const texto = await lerAreaTransferencia();
   if (identificarTipoConteudo(texto) !== "desk") {
     alert("Os dados não são do tipo Desk.");
     return;
   }
 
-  const telefones = extrairTelefonesDesk(texto);
+  const telefones = extrairTelefones(texto);
   const email = extrairEmail(texto);
 
   telefones.forEach((tel, i) => {
@@ -152,6 +137,11 @@ async function transferirDesk() {
 }
 
 function copiarFaster() {
+  if (tipoTransferido !== "faster") {
+    alert("Os dados atuais não são do tipo Faster.");
+    return;
+  }
+
   const telefones = [];
   for (let i = 1; i <= 4; i++) {
     const valor = document.getElementById(`telefone${i}`).value;
@@ -163,16 +153,22 @@ function copiarFaster() {
     }
   }
 
-  const email = document.getElementById("email").value;
-  const emailFormatado = formatarEmail(email);
+  const email = document.getElementById("email").value.trim();
   const telefonesFormatados = telefones.map(formatarTelefone).join(", ");
 
-  let mensagem = `No seu cadastro constam as seguintes informações para contato:  ${telefonesFormatados} e ${emailFormatado}. Deseja remover ou adicionar algum contato?`;
+  let mensagem = `No seu cadastro constam as seguintes informações para contato:  ${telefonesFormatados}`;
 
-  if (email.includes("@hotmail")) {
-    const aviso = `\n\nE-mails com domínio @hotmail, tem apresentado problemas para receber comunicados que enviamos. Você tem outro e-mail com domínio diferente?\nExemplo: @gmail, @yahoo, @icloud, etc.`;
-    mensagem += aviso;
-    mostrarMensagem("Atenção! Cliente usa domínio @hotmail.", "red");
+  if (email) {
+    const emailFormatado = formatarEmail(email);
+    mensagem += ` e ${emailFormatado}. Deseja remover ou adicionar algum contato?`;
+
+    if (email.includes("@hotmail")) {
+      const aviso = `\n\nE-mails com domínio @hotmail têm apresentado problemas para receber comunicados que enviamos. Você tem outro e-mail com domínio diferente?\nExemplo: @gmail, @yahoo, @icloud, etc.`;
+      mensagem += aviso;
+      mostrarMensagem("Atenção! Cliente usa domínio @hotmail.", "red");
+    }
+  } else {
+    mensagem += `. Deseja remover ou adicionar algum contato?\nIdentificamos que não há e-mail cadastrado em sistema, deseja adicionar algum?`;
   }
 
   navigator.clipboard.writeText(mensagem);
@@ -180,6 +176,11 @@ function copiarFaster() {
 }
 
 function copiarDesk() {
+  if (tipoTransferido !== "desk") {
+    alert("Os dados atuais não são do tipo Desk.");
+    return;
+  }
+
   const telefones = [];
   for (let i = 1; i <= 4; i++) {
     const valor = document.getElementById(`telefone${i}`).value;
@@ -191,19 +192,60 @@ function copiarDesk() {
     }
   }
 
-  const email = document.getElementById("email").value;
-  const emailFormatado = formatarEmail(email);
+  const email = document.getElementById("email").value.trim();
   const telefonesFormatados = telefones.map(formatarTelefone).join(", ");
 
-  const mensagem = `No seu cadastro constam as seguintes informações para contato:  ${telefonesFormatados} e ${emailFormatado}. Deseja remover ou adicionar algum contato?`;
+  let mensagem = `No seu cadastro constam as seguintes informações para contato:  ${telefonesFormatados}`;
+
+  if (email) {
+    const emailFormatado = formatarEmail(email);
+    mensagem += ` e ${emailFormatado}. Deseja remover ou adicionar algum contato?`;
+  } else {
+    mensagem += `. Deseja remover ou adicionar algum contato?\nIdentificamos que não há e-mail cadastrado em sistema, deseja adicionar algum?`;
+  }
 
   navigator.clipboard.writeText(mensagem);
   mostrarMensagem("Copiado! Verifique as informações antes de enviar para o cliente", "limegreen");
 }
 
-function apagarCampos() {
-  for (let i = 1; i <= 4; i++) {
-    document.getElementById(`telefone${i}`).value = "";
+let tipoTransferido = ""; // variável global
+
+async function transferirFaster() {
+  apagarCampos();
+  const texto = await lerAreaTransferencia();
+  if (identificarTipoConteudo(texto) !== "faster") {
+    alert("Os dados não são do tipo Faster.");
+    return;
   }
-  document.getElementById("email").value = "";
+
+  tipoTransferido = "faster"; // registra tipo
+  const telefones = extrairTelefones(texto);
+  const email = extrairEmail(texto);
+
+  telefones.forEach((tel, i) => {
+    const campo = document.getElementById(`telefone${i + 1}`);
+    if (campo) campo.value = tel.ddd + tel.numero;
+  });
+
+  if (email) document.getElementById("email").value = email;
+}
+
+async function transferirDesk() {
+  apagarCampos();
+  const texto = await lerAreaTransferencia();
+  if (identificarTipoConteudo(texto) !== "desk") {
+    alert("Os dados não são do tipo Desk.");
+    return;
+  }
+
+  tipoTransferido = "desk"; // registra tipo
+  const telefones = extrairTelefones(texto);
+  const email = extrairEmail(texto);
+
+  telefones.forEach((tel, i) => {
+    const campo = document.getElementById(`telefone${i + 1}`);
+    if (campo) campo.value = tel.ddd + tel.numero;
+  });
+
+  if (email) document.getElementById("email").value = email;
 }
